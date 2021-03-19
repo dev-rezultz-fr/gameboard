@@ -1,44 +1,55 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
-<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
-<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
-<link rel="import" href="../bower_components/iron-location/iron-location.html">
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-layout/app-layout.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="ck-styles.html">
-<link rel="lazy-import" href="ck-index.html">
-<link rel="lazy-import" href="ck-new.html">
-<link rel="lazy-import" href="ck-game.html">
-<link rel="lazy-import" href="ck-stats.html">
-<link rel="lazy-import" href="ck-people.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="ck-index.html">
+<link rel="import" href="ck-new.html">
+<link rel="import" href="ck-game.html">
+<link rel="import" href="ck-stats.html">
+<link rel="import" href="ck-people.html">
 <link rel="import" href="ck-icons.html">
   
   <dom-module id="ck-app">
   <template>
-    <style include="ck-styles">
-      app-header{background-color:var(--cricket-primary-color);}
-      paper-icon-button{color:white;}
+    <style include="shared-styles">
+      app-drawer-layout:not([narrow]) [drawer-toggle] {display: none;}
+      app-header{background-color:var(--cricket-primary-accent-color);}
+      iron-selector{margin-top:24px;}
+      a.row{padding:12px;color:#666;}
+      a.row > span{margin-left:24px;}
+      a.iron-selected{font-weight:bold;color: var(--cricket-primary-accent-color);}
     </style>
-    <iron-location url-space-regex="^[[rootPath]]" path="{{path}}" query="{{query}}" hash="{{hash}}"></iron-location>
-        
     <app-header-layout>
       <app-header slot="header" shadow fixed>
         <app-toolbar>
-          <div main-title>Cricket Scoreboard</div>
-          <a href="[[rootPath]]"><paper-icon-button icon="ck:home"></paper-icon-button></a>
-          <a href="[[rootPath]]stats"><paper-icon-button icon="ck:stats"></paper-icon-button></a>
-          <a href="[[rootPath]]people"><paper-icon-button icon="ck:people"></paper-icon-button></a>
+          <div main-title>Cricket</div>
+          <paper-icon-button icon="ck:home" id="index" on-click="_link"></paper-icon-button>
+          <paper-icon-button icon="ck:stats" id="stats" on-click="_link" hidden></paper-icon-button>
+          <paper-icon-button icon="ck:people" id="people" on-click="_link"></paper-icon-button>
         </app-toolbar>
       </app-header>
 
-      <iron-pages id="main" selected="{{page}}" attr-for-selected="id" fallback-selection="index" role="main">
-        <ck-index id="index"></ck-index>
-        <ck-new id="new"></ck-new>
-        <ck-game id="game"></ck-game>
-        <ck-stats id="stats"></ck-stats>
-        <ck-people id="people"></ck-people>
-      </iron-pages>      
+      <iron-pages id="main" selected="{{view}}" attr-for-selected="id" fallback-selection="index" role="main">
+        <ck-index id="index" on-change-view="_chgView" game="{{game}}"></ck-index>
+        <ck-new id="new" on-change-view="_chgView" game="{{game}}" people="{{people}}"></ck-new>
+        <ck-game id="game" on-change-view="_chgView" game="{{game}}"></ck-game>
+        <ck-stats id="stats" on-change-view="_chgView"></ck-stats>
+        <ck-people id="people" on-change-view="_chgView" people="{{people}}"></ck-people>
+      </iron-pages>     
+      
     </app-header-layout>
+    <iron-localstorage  name="game" value="{{game}}"></iron-localstorage>
+    <iron-localstorage  name="people" value="{{people}}"></iron-localstorage>
 
   </template>
 
@@ -47,38 +58,33 @@
       static get is() { return 'ck-app';}
       static get properties() {
         return {
-          page: String,
-          path: String,
-          query: String,
-          hash: String
+          game: {
+            type: Object,
+            notify: true
+          },
+          people: {
+            type: Array,
+            notify: true
+          }
         };
       }
-      static get observers() {
-        return [
-          '_urlChanged(path,query,hash)',
-        ];
-      }
-      _urlChanged(path,query,hash) {
-        var pathFrags = (path)?path.split('/'):[APP.defaultPage];
-        var page = pathFrags[1] || APP.defaultPage;
-        this.set('page',page);
-        var resolvedPageUrl = this.resolveUrl('ck-' + page + '.html');
-        Polymer.importHref(
-          resolvedPageUrl,
-          null,
-          this._showPage404.bind(this),
-          true
-        );
-      }
+
       ready(){
         super.ready();
-        APP.readyStep('shell',true);
+        this.dispatchEvent(new CustomEvent('app-ready'));
+        //this.set('game',JSON.parse(window.localStorage.getItem('game')));
+        //console.log(this.game);
+        this.set('people',JSON.parse(window.localStorage.getItem('people')));
+        //console.log(this.people);
+        //window.localStorage.removeItem('ongoing');
       }
-      _showPage404(){
-        this.set('path',APP.defaultPath);
-        this.set('query','');
-        this.set('hash','');
+      _chgView(e){
+        if(e.detail.view === 'game'){this.$.game.refresh();}
+        this.set('view',e.detail.view);
+        //console.log(this.people,this.game);
       }
+      _link(e){this._chgView({detail:{view:e.target.id}});}
+
     }
     window.customElements.define(CkApp.is, CkApp);
   </script>
