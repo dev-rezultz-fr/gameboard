@@ -2,79 +2,94 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=1, initial-scale=1, user-scalable=no">
-    <title>Cricket Scoreboard</title>
-    <meta name="description" content="Cricket scoreboard">
+    <meta name="generator" content="Polymer Starter Kit">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>GameBoard</title>
+    <meta name="description" content="GameBoard : Jouez entre amis et en famille et suivez les scores">
+
     <base href="/">
-    <link rel="icon" href="/images/favicon.ico">
-    <link rel="manifest" href="/manifest.json">
+
+    <link rel="icon" href="images/favicon.ico">
+
+    <!-- See https://goo.gl/OOhYW5 -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- See https://goo.gl/qRE0vM -->
     <meta name="theme-color" content="#3f51b5">
+
+    <!-- Add to homescreen for Chrome on Android. Fallback for manifest.json -->
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Cricket Scoreboard">
+    <meta name="application-name" content="GameBoard">
+
+    <!-- Add to homescreen for Safari on iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Cricket">
+    <meta name="apple-mobile-web-app-title" content="GameBoard">
+
+    <!-- Homescreen icons -->
     <link rel="apple-touch-icon" href="images/manifest/icon-48x48.png">
     <link rel="apple-touch-icon" sizes="72x72" href="images/manifest/icon-72x72.png">
     <link rel="apple-touch-icon" sizes="96x96" href="images/manifest/icon-96x96.png">
     <link rel="apple-touch-icon" sizes="144x144" href="images/manifest/icon-144x144.png">
     <link rel="apple-touch-icon" sizes="192x192" href="images/manifest/icon-192x192.png">
+
+    <!-- Tile icon for Windows 8 (144x144 + tile color) -->
     <meta name="msapplication-TileImage" content="images/manifest/icon-144x144.png">
     <meta name="msapplication-TileColor" content="#3f51b5">
     <meta name="msapplication-tap-highlight" content="no">
-    
-    <script>window.Polymer = {rootPath: '/'};</script>
-    <script src="bower_components/webcomponentsjs/webcomponents-loader.js"></script>
-    <link rel="import" href="src/ck-app.html">
 
-    <style>
-      body {margin: 0;font-family: 'Roboto', 'Arial', sans-serif;line-height: 1.5;min-height: 100vh;background-color: #eeeeee;}
-      #splash{position:fixed;top:0;bottom:0;left:0;right:0;z-index:-1;background-color:#fff}
-      #title{height: 96px;color:rgb(64,179,223);text-align:center;line-height:30px;margin-top:34px;font-size:20px;font-weight:normal;font-family: 'Roboto', 'Noto', sans-serif;}
-      #loading{color:rgb(195,196,197);background-color: #fff;margin-top:20px;text-align:center;}
-      #logo{color:rgb(195,196,197);background-color:#fff;margin-top:100px;text-align:center;}
-      #logo > img{width:200px;}
-      .loader {
-        border: 10px solid #f3f3f3; /* Light grey */
-		    border-top: 10px solid rgb(250,170,0);
-		    border-bottom: 10px solid rgb(168,203,23);
-        border-radius: 50%;width: 40px;height: 40px;margin:auto;margin-top:120px;margin-bottom:12px;
+    <script>
+      /**
+      * [polymer-root-path]
+      *
+      * Leave this line unchanged if you intend to serve your app from the root
+      * path (e.g., with URLs like `my.domain/` and `my.domain/view1`).
+      *
+      * If you intend to serve your app from a non-root path (e.g., with URLs
+      * like `my.domain/my-app/` and `my.domain/my-app/view1`), edit this line
+      * to indicate the path from which you'll be serving, including leading
+      * and trailing slashes (e.g., `/my-app/`).
+      */
+      window.GbAppGlobals = {
+        rootPath: '/',
+        deviceKey: window.localStorage.getItem('gbDeviceKey'),
+        title: 'GameBoard > ',
+        titles: ['Historique des parties', 'Commencer une nouvelle partie', 'Paramètres']
+      };
+
+      // Load and register pre-caching Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('service-worker.js', {
+            scope: GbAppGlobals.rootPath
+          });
+        });
       }
-      .ease{animation: spin 2s ease infinite;}
-      @keyframes spin {
-        0% { transform: rotate(0deg);}
-        100% { transform: rotate(360deg);}
+    </script>
+
+    <!-- Load webcomponents-loader.js to check and load any polyfills your browser needs -->
+    <script src="node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
+
+    <!-- Load your application shell -->
+    <script type="module" src="src/gb-app.js"></script>
+
+    <!-- Add any global styles for body, document, etc. -->
+    <style>
+      body {
+        margin: 0;
+        font-family: "Roboto", "Noto", sans-serif;
+        line-height: 1.5;
+        min-height: 100vh;
+        background-color: #eeeeee;
       }
     </style>
   </head>
   <body>
-    <div id="splash" style="display:block;">
-      <div id="title">Cricket</div>
-      <div id="loading">
-         <div class="loader ease"></div>
-        Chargement de l'application...
-      </div>
-    </div>
-    <ck-app id="app" style="display:none;"></ck-app>
-    <script>
-      var app = document.getElementById('app');
-      app.addEventListener('app-ready', function() {
-        console.log('#renderApp : app ready');
-        app.style.display = 'block';
-        document.getElementById('splash').style.display = 'none';
-      });
-      app.addEventListener('app-loading', function() {
-        console.log('app loading');
-        app.style.display = 'none';
-        document.getElementById('splash').style.display = 'block';
-      });
-      if(app.__dataClientsReady){
-        app.style.display = 'block';
-        document.getElementById('splash').style.display = 'none';
-      }
-      else{
-        app.dispatchEvent(new CustomEvent('app-loading'));
-      }
-    </script>
+    <gb-app></gb-app>
+    <noscript>
+      Please enable JavaScript to view this website.
+    </noscript>
+    <!-- Built with love using Polymer Starter Kit -->
   </body>
 </html>

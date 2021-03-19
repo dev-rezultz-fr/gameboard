@@ -1,0 +1,8 @@
+\bower_components\
+\build\
+\static\
+\old\
+\node_modules\
+exclude.txt
+firebase-log-debug.log
+firebase-debug.log
