@@ -1,0 +1,140 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="ck-styles.html">
+
+<dom-module id="ck-new">
+  <template>
+    <style include="ck-styles">
+      iron-icon, paper-spinner{height:24px;width:24px;margin-right:24px;}
+      #newGame,paper-button[raised]{background:var(--cricket-success-accent-color);color: white;}
+      .row{flex-wrap:wrap;}
+      paper-checkbox{margin-right:24px;margin-bottom:24px;}
+      #newGame[disabled]{background:white;color:#eee;}
+      paper-button[dialog-dismiss]{color:var(--cricket-error-accent-color);}
+      h3{color:#757575;}
+    </style>
+    <div class="card">
+      <div class="row">
+        <h3 class="flex">Configurer une nouvelle partie</h3>
+        <paper-button on-click="_goNew" id="newGame" disabled>
+          <iron-pages selected="{{sel}}" fallback-selection="0">
+            <iron-icon icon="ck:ongoing" id="go"></iron-icon>
+            <paper-spinner id="spinner" active></paper-spinner>
+          </iron-pages>
+          Commencer
+        </paper-button>
+      </div>
+    </div>
+    <div class="card">
+      <h4>Joueurs :</h4>
+      <div class="row">
+        <template is="dom-repeat" items="{{people}}">
+          <paper-checkbox disabled="{{creating}}" on-checked-changed="_valid" name="[[index]]">[[item.name]] ([[item.wins]] victoires)</paper-checkbox>
+        </template>
+      </div>
+    </div>
+    <div class="card">
+      <h4>Gestion des points une fois un segment fermé</h4>
+      <paper-radio-group id="points" selected="for">
+        <paper-radio-button disabled name="for">Les points pour soi</paper-radio-button>
+        <paper-radio-button disabled name="against">Les points pour ceux qui n'ont pas fermé le segment</paper-radio-button>
+        <paper-radio-button disabled name="none">Aucun point géré</paper-radio-button>
+      </paper-radio-group>
+    </div>
+    <div class="card">
+      <h4>Nombre de tours de jeu</h4>
+      <paper-radio-group id="rounds" selected="20">
+        <paper-radio-button disabled="{{creating}}" name="20">20 tours (+10 si égalité)</paper-radio-button>
+        <paper-radio-button disabled="{{creating}}" name="inf">infini</paper-radio-button>
+      </paper-radio-group>
+    </div>
+    <paper-dialog id="dialog">
+      <h3>Une autre partie est en cours</h3>
+      <div>
+        Voulez-vous arrêter la partie en cours et en recommencer une nouvelle ?
+      </div>
+      <div class="buttons">
+        <paper-button dialog-dismiss>Annuler</paper-button>
+        <paper-button dialog-confirm autofocus on-click="_genNew" raised>Oui</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+  <script>
+    class CkNew extends Polymer.Element {
+      static get is() { return 'ck-new';}
+      static get properties() {
+        return {
+          game: {
+            type: Object,
+            notify: true
+          },
+          people: {
+            type: Object,
+            notify: true
+          }
+        };
+      }
+      _link(dir){this.dispatchEvent(new CustomEvent('change-view',{detail:{view:dir}}));}
+      _valid(e){
+        if(this.shadowRoot.querySelectorAll('paper-checkbox[checked]').length > 0){
+          this.$.newGame.set('disabled',false);
+        }
+        else{this.$.newGame.set('disabled',true);}
+      }
+      _goNew(e){
+        if(this.game && this.game.ongoing === true){
+          this.$.dialog.open();
+        }
+        else{
+          this._genNew(e);
+        }
+      }
+      _genNew(e){
+        // setting page state to 'creating'
+        this.set('sel',1);
+        this.set('creating',true);
+        this.$.newGame.set('disabled',true);
+        var game = {ongoing:true,players:[],options:{points:this.$.points.selected, rounds:this.$.rounds.selected},round:1,playing:0,segments:{s20:0,s19:0,s18:0,s17:0,s16:0,s15:0,sB:0}};
+        // populate players
+        var players = this.shadowRoot.querySelectorAll('paper-checkbox[checked]');
+        var peopleInit = [];
+        var score = {hits:0,points:0};
+        var scores = {total:0,s20:score,s19:score,s18:score,s17:score,s16:score,s15:score,sB:score};
+        var count = window.localStorage.getItem('countPlayers') || 10;
+        for(var i = 0; i < players.length; i++){
+          peopleInit.push({people:this.people[players[i].name],hits:[],currentHits:[],scores:scores});
+          players[i].set('checked',false);
+          var j = i + count;
+          window.localStorage.setItem('player-'+j,JSON.stringify(peopleInit[i]));
+          game.players.push('player-'+j);
+        }
+        window.localStorage.setItem('countPlayers',count + players.length);
+        // Mixing the order of players
+        var peopleMixed = [];
+        while(peopleInit.length > 0){
+          var j = (Math.floor(Math.random() * peopleInit.length));
+          peopleMixed.push(peopleInit.splice(j,1)[0]);
+        }
+        this.set('game',game);
+        //this.set('people',peopleMixed);
+        this.$.rounds.set('selected','20');
+        this.$.points.set('selected','for');
+        // setting page state to initial
+        this.set('sel',0);
+        this.set('creating',false);
+        //console.log(this.game);
+        // Going to ongoing game page to run the party
+        this._link('game');
+      }
+    }
+    window.customElements.define(CkNew.is, CkNew);
+  </script>
+</dom-module>

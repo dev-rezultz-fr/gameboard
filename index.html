@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, maximum-scale=1, initial-scale=1, user-scalable=no">
+    <title>Cricket Scoreboard</title>
+    <meta name="description" content="Cricket scoreboard">
+    <base href="/">
+    <link rel="icon" href="/images/favicon.ico">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#3f51b5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Cricket Scoreboard">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cricket">
+    <link rel="apple-touch-icon" href="images/manifest/icon-48x48.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/manifest/icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="96x96" href="images/manifest/icon-96x96.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="images/manifest/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="images/manifest/icon-192x192.png">
+    <meta name="msapplication-TileImage" content="images/manifest/icon-144x144.png">
+    <meta name="msapplication-TileColor" content="#3f51b5">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <script>window.Polymer = {rootPath: '/'};</script>
+    <script src="bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+    <style>
+      body{font-family:Roboto;margin:0;background: #efefef}
+      #splash, #splashFlex {position: absolute; top: 0; left: 0; right: 0; bottom: 0;z-index:10001;background:white;}
+      #splashFlex {display:flex;flex-direction:column;}
+      #loader{z-index:99;position:fixed;top:60px;width:100%;}
+      .delimiter{flex:1;}
+      .center{text-align:center;margin-bottom:12px;}
+      .loader{height: 4px;width: 100%;position: relative;overflow: hidden;background-color: #ddd;margin:auto;border-radius: 2px;}
+      .loader:before{display: block;position: absolute;content: "";left: -15px;width: 15px;height: 4px;background-color: rgb(64,179,223);
+        animation: loading 2s linear infinite;}
+      @keyframes loading {
+        from {left: -15px; width: 30%;}
+        50% {width: 30%;}
+        70% {width: 70%;}
+        80% {left: 50%;}
+        95% {left: 120%;}
+        to {left: 100%;}
+      }
+    </style>
+  </head>
+  <body>
+    <div id="splash">
+      <div id="splashFlex">
+        <div class="delimiter"></div>
+        <span class="center" style="color:red;font-weight:bold;">ReZultZ.fr</span>
+        <div class="center">
+          <div class="loader" style="width:150px;"></div>
+        </div>
+        <div class="delimiter"></div>
+      </div>
+    </div>
+    <ck-app id="app" style="display:none;"></ck-app>
+    <script>
+      var APP = {
+        shellId : 'app',
+        splashId : 'splash',
+        defaultPage: 'index',
+        defaultPath: '',
+        games: window.localStorage.getItem('games') || [],
+        people: window.localStorage.getItem('people') || [],
+        ready: {shell:false,all:false},
+        readyStep : function(s,f){
+          this.ready[s] = f;
+          this.ready.all = this.ready.shell;
+          document.getElementById(APP.shellId).style.display = (this.ready.all)?'block':'none';
+          document.getElementById(APP.splashId).style.display = (this.ready.all)?'none':'block';
+        }
+      };
+    </script>
+    <link rel="import" href="src/ck-app.html">
+  </body>
+</html>

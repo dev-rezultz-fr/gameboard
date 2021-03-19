@@ -1,0 +1,304 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="ck-styles.html">
+
+<dom-module id="ck-pl-scores">
+  <template>
+    <style include="ck-styles">
+      paper-button[dialog-dismiss]{color:var(--cricket-error-accent-color);}
+      paper-button[raised]{background:var(--cricket-success-accent-color);color: white;}
+      .line{height:120px;line-height:120px;}
+      .half-line{height:60px;line-height:60px;}
+      .third-line{height:40px;line-height:40px;}
+      .player:not(:last-child){border-top: 1px solid #757575;}
+      .score{text-align:center;margin:0;}
+      .score:not(:last-child){border-right: 1px solid #757575;}
+      iron-icon.flex{margin-left:0;}
+      paper-button.hit{margin:0;left:0;width:100%;height:36px;}
+      paper-button.bad{color:white;background:var(--cricket-error-accent-color);}
+      .dart{color:var(--cricket-back-accent-color);margin-right:12px;}
+      .dart.s{color:var(--cricket-back-color);margin-right:6px;margin-left:6px;}
+      .dart.played{color:var(--cricket-warning-accent-color);}
+      .dart.scored{color:var(--cricket-success-accent-color);}
+      .hits{text-align:left;}
+      div[closed]{background:var(--cricket-success-color);}
+    </style>
+    <paper-dialog id="dialog">
+      <h3>Fin d'un tour de jeu</h3>
+      <div>
+        Valider les fléchettes du joueur en cours ?
+      </div>
+      <div class="buttons">
+        <paper-button dialog-dismiss on-click="_resetHits">Non</paper-button>
+        <paper-button dialog-confirm autofocus on-click="_validateRound" raised>Oui</paper-button>
+      </div>
+    </paper-dialog>
+    <div class="player">
+      <div class="row half-line">
+        <div class="flex score">[[player.people.name]]</div>
+        <div class="flex score" id="score-d-20">
+          <iron-icon id="score-d-20-1" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-20-2" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-20-3" icon="ck:dart" class="flex dart s"></iron-icon>
+        </div>
+        <div class="flex score" id="score-d-19">
+          <iron-icon id="score-d-19-1" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-19-2" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-19-3" icon="ck:dart" class="flex dart s"></iron-icon>
+        </div>
+        <div class="flex score" id="score-d-18">
+          <iron-icon id="score-d-18-1" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-18-2" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-18-3" icon="ck:dart" class="flex dart s"></iron-icon>
+        </div>
+        <div class="flex score" id="score-d-17">
+          <iron-icon id="score-d-17-1" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-17-2" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-17-3" icon="ck:dart" class="flex dart s"></iron-icon>
+        </div>
+        <div class="flex score" id="score-d-16">
+          <iron-icon id="score-d-16-1" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-16-2" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-16-3" icon="ck:dart" class="flex dart s"></iron-icon>
+        </div>
+        <div class="flex score" id="score-d-15">
+          <iron-icon id="score-d-15-1" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-15-2" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-15-3" icon="ck:dart" class="flex dart s"></iron-icon>
+        </div>
+        <div class="flex score" id="score-d-B">
+          <iron-icon id="score-d-B-1" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-B-2" icon="ck:dart" class="flex dart s"></iron-icon>
+          <iron-icon id="score-d-B-3" icon="ck:dart" class="flex dart s"></iron-icon>
+        </div>
+      </div>
+      <div class="row half-line">
+        <div class="flex score" id="score-p-total">[[player.scores.total]]</div>
+        <div class="flex score" id="score-p-20">[[player.scores.s20.points]]</div>
+        <div class="flex score" id="score-p-19">[[player.scores.s19.points]]</div>
+        <div class="flex score" id="score-p-18">[[player.scores.s18.points]]</div>
+        <div class="flex score" id="score-p-17">[[player.scores.s17.points]]</div>
+        <div class="flex score" id="score-p-16">[[player.scores.s16.points]]</div>
+        <div class="flex score" id="score-p-15">[[player.scores.s15.points]]</div>
+        <div class="flex score" id="score-p-B">[[player.scores.sB.points]]</div>
+      </div>
+      <div class="line" id="hits-pl" hidden="{{!active}}">
+        <div class="row third-line">
+          <div class="flex score hits" on-click="_openDialog">
+            <iron-icon id="hit-d-1" icon="ck:dart" class="flex dart"></iron-icon>
+            <span id="hit-s-1">à jouer</span>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-S20" on-click="_hit" data-seg="20x1">Simple</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-S19" on-click="_hit" data-seg="19x1">Simple</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-S18" on-click="_hit" data-seg="18x1">Simple</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-S17" on-click="_hit" data-seg="17x1">Simple</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-S16" on-click="_hit" data-seg="16x1">Simple</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-S15" on-click="_hit" data-seg="15x1">Simple</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-SB" on-click="_hit" data-seg="Bx1">Simple</paper-button>
+          </div>
+        </div>
+        <div class="row third-line">
+          <div class="flex score hits" on-click="_openDialog">
+            <iron-icon id="hit-d-2" icon="ck:dart" class="flex dart"></iron-icon>
+            <span id="hit-s-2">à jouer</span>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-D20" on-click="_hit" data-seg="20x2">Double</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-D19" on-click="_hit" data-seg="19x2">Double</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-D18" on-click="_hit" data-seg="18x2">Double</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-D17" on-click="_hit" data-seg="17x2">Double</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-D16" on-click="_hit" data-seg="16x2">Double</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-D15" on-click="_hit" data-seg="15x2">Double</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-DB" on-click="_hit" data-seg="Bx2">Double</paper-button>
+          </div>
+        </div>
+        <div class="row third-line">
+          <div class="flex score hits" on-click="_openDialog">
+            <iron-icon id="hit-d-3" icon="ck:dart" class="flex dart"></iron-icon>
+            <span id="hit-s-3">à jouer</span>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-T20" on-click="_hit" data-seg="20x3">Triple</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-T19" on-click="_hit" data-seg="19x3">Triple</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-T18" on-click="_hit" data-seg="18x3">Triple</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-T17" on-click="_hit" data-seg="17x3">Triple</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-T16" on-click="_hit" data-seg="16x3">Triple</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit" id="hit-3-T15" on-click="_hit" data-seg="15x3">Triple</paper-button>
+          </div>
+          <div class="flex score">
+            <paper-button class="hit bad" id="hit-null" on-click="_hit" data-seg="loupé">Loupé</paper-button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <iron-localstorage id="player" name="[[playerId]]" value="{{player}}"></iron-localstorage>
+  </template>
+  <script>
+    class CkPlScores extends Polymer.Element {
+      static get is() { return 'ck-pl-scores';}
+      static get properties() {
+        return {
+          player: {
+            type: Object,
+            notify: true
+          },
+          playerId: {
+            type: Object,
+            notify: true
+          },
+          active: {
+            type: Boolean,
+            notify: true,
+            value: false
+          },
+          info: {
+            type: Object,
+            notify: true
+          }
+        };
+      }
+      activate(){
+        this.$.player.reload();
+        this._setCurrDarts();
+        this.set('active',true);
+        //console.log(this.player);
+        console.log(JSON.parse(window.localStorage.getItem(this.playerId)));
+      }
+      disactivate(){
+        this.$.player.save();
+        this.set('active',false);
+        this._setCurrDarts();
+        this._setStatusDarts();
+      }
+      _hit(e){
+        if(this.active){
+          if(!this.player.currentHits){this.set('player.currentHits',[]);};
+          var val = e.target.getAttribute('data-seg');
+          this.push('player.currentHits',val);
+          var i = this.player.currentHits.length;
+          this.shadowRoot.querySelector('#hit-d-'+i).toggleClass('played',true);
+          this.shadowRoot.querySelector('#hit-s-'+i).innerText = this.player.currentHits[i-1];
+          if(i === 3){ // 3 fléchettes ont été jouées sur ce tour de jeu
+            this._openDialog(false);
+          }
+        }
+        e.target.blur();
+      }
+      _resetHits(){
+        this.set('player.currentHits',[]);
+        this._setCurrDarts();
+      }
+      _setCurrDarts(){
+        this.shadowRoot.querySelector('#hit-d-1').toggleClass('played',this.player.currentHits[0]);
+        this.shadowRoot.querySelector('#hit-d-2').toggleClass('played',this.player.currentHits[1]);
+        this.shadowRoot.querySelector('#hit-d-3').toggleClass('played',this.player.currentHits[2]);
+        this.shadowRoot.querySelector('#hit-s-1').innerText = (this.player.currentHits[0])?this.player.currentHits[0]:'à jouer';
+        this.shadowRoot.querySelector('#hit-s-2').innerText = (this.player.currentHits[1])?this.player.currentHits[1]:'à jouer';
+        this.shadowRoot.querySelector('#hit-s-3').innerText = (this.player.currentHits[2])?this.player.currentHits[2]:'à jouer';
+      }
+      _openDialog(e){this.$.dialog.open();}
+      _validateRound(e){
+        for(var i = 0; i < this.player.currentHits.length; i++){
+          if(this.player.currentHits[i] !== 'à jouer'){
+            var s = this.player.currentHits[i].split('x');
+            var x = {};
+            x.value = (s[0] === 'B')?25:parseInt(s[0],10);
+            x.card = parseInt(s[1],10);
+            s[0] = 's' + s[0];
+            while(x.card>0){
+              if(this.player.scores[s[0]].hits === 3 && this.game.segments[s[0]] != this.game.players.length){
+                this.set('player.scores.'+s[0]+'.points',this.player.scores[s[0]].points + x.value);
+                this.set('player.scores.total',this.player.scores.total + x.value);
+                console.log('ajout de points sur le '+s[0],'player.scores.'+s[0]+'.points');
+                //console.log(this.player.scores[s[0]].points + x.value);
+              }
+              if(this.player.scores[s[0]].hits < 3){ // the player has not closed the segment, increase the hits score
+                this.set('player.scores.'+s[0]+'.hits',this.player.scores[s[0]].hits + 1);
+                console.log('ajout d\'une touche sur le '+s[0],'player.scores.'+s[0]+'.hits');
+                if(this.player.scores[s[0]].hits === 3){ // increase the number of players who have closed this segment
+                  this.set('game.segments.'+s[0],this.game.segments[s[0]] + 1);
+                  console.log('fermeture du '+s[0],this.game.segments);
+                }
+              }
+              x.card--;
+            }
+          }
+        }
+        var hits = this.player.currentHits;
+        this.push('player.hits',hits);
+        this.set('player.currentHits',[]);
+        this._setCurrDarts();
+        this.dispatchEvent(new CustomEvent('next',{detail:hits}));
+      }
+      _setStatusDarts(){
+        // Segment 20
+        this.shadowRoot.querySelector('#score-d-20-1').toggleClass('scored',(this.player.scores.s20.hits >= 1));
+        this.shadowRoot.querySelector('#score-d-20-2').toggleClass('scored',(this.player.scores.s20.hits >= 2));
+        this.shadowRoot.querySelector('#score-d-20-3').toggleClass('scored',(this.player.scores.s20.hits === 3));
+        // Segment 19
+        this.shadowRoot.querySelector('#score-d-19-1').toggleClass('scored',(this.player.scores.s19.hits >= 1));
+        this.shadowRoot.querySelector('#score-d-19-2').toggleClass('scored',(this.player.scores.s19.hits >= 2));
+        this.shadowRoot.querySelector('#score-d-19-3').toggleClass('scored',(this.player.scores.s19.hits === 3));
+        // Segment 18
+        this.shadowRoot.querySelector('#score-d-18-1').toggleClass('scored',(this.player.scores.s18.hits >= 1));
+        this.shadowRoot.querySelector('#score-d-18-2').toggleClass('scored',(this.player.scores.s18.hits >= 2));
+        this.shadowRoot.querySelector('#score-d-18-3').toggleClass('scored',(this.player.scores.s18.hits === 3));
+        // Segment 17
+        this.shadowRoot.querySelector('#score-d-17-1').toggleClass('scored',(this.player.scores.s17.hits >= 1));
+        this.shadowRoot.querySelector('#score-d-17-2').toggleClass('scored',(this.player.scores.s17.hits >= 2));
+        this.shadowRoot.querySelector('#score-d-17-3').toggleClass('scored',(this.player.scores.s17.hits === 3));
+        // Segment 16
+        this.shadowRoot.querySelector('#score-d-16-1').toggleClass('scored',(this.player.scores.s16.hits >= 1));
+        this.shadowRoot.querySelector('#score-d-16-2').toggleClass('scored',(this.player.scores.s16.hits >= 2));
+        this.shadowRoot.querySelector('#score-d-16-3').toggleClass('scored',(this.player.scores.s16.hits === 3));
+        // Segment 15
+        this.shadowRoot.querySelector('#score-d-15-1').toggleClass('scored',(this.player.scores.s15.hits >= 1));
+        this.shadowRoot.querySelector('#score-d-15-2').toggleClass('scored',(this.player.scores.s15.hits >= 2));
+        this.shadowRoot.querySelector('#score-d-15-3').toggleClass('scored',(this.player.scores.s15.hits === 3));
+        // Segment B
+        this.shadowRoot.querySelector('#score-d-B-1').toggleClass('scored',(this.player.scores.sB.hits >= 1));
+        this.shadowRoot.querySelector('#score-d-B-2').toggleClass('scored',(this.player.scores.sB.hits >= 2));
+        this.shadowRoot.querySelector('#score-d-B-3').toggleClass('scored',(this.player.scores.sB.hits === 3));
+      }
+    }
+    window.customElements.define(CkPlScores.is, CkPlScores);
+  </script>
+</dom-module>

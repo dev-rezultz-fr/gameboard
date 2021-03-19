@@ -1,0 +1,85 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/iron-location/iron-location.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="ck-styles.html">
+<link rel="lazy-import" href="ck-index.html">
+<link rel="lazy-import" href="ck-new.html">
+<link rel="lazy-import" href="ck-game.html">
+<link rel="lazy-import" href="ck-stats.html">
+<link rel="lazy-import" href="ck-people.html">
+<link rel="import" href="ck-icons.html">
+  
+  <dom-module id="ck-app">
+  <template>
+    <style include="ck-styles">
+      app-header{background-color:var(--cricket-primary-color);}
+      paper-icon-button{color:white;}
+    </style>
+    <iron-location url-space-regex="^[[rootPath]]" path="{{path}}" query="{{query}}" hash="{{hash}}"></iron-location>
+        
+    <app-header-layout>
+      <app-header slot="header" shadow fixed>
+        <app-toolbar>
+          <div main-title>Cricket Scoreboard</div>
+          <a href="[[rootPath]]"><paper-icon-button icon="ck:home"></paper-icon-button></a>
+          <a href="[[rootPath]]stats"><paper-icon-button icon="ck:stats"></paper-icon-button></a>
+          <a href="[[rootPath]]people"><paper-icon-button icon="ck:people"></paper-icon-button></a>
+        </app-toolbar>
+      </app-header>
+
+      <iron-pages id="main" selected="{{page}}" attr-for-selected="id" fallback-selection="index" role="main">
+        <ck-index id="index"></ck-index>
+        <ck-new id="new"></ck-new>
+        <ck-game id="game"></ck-game>
+        <ck-stats id="stats"></ck-stats>
+        <ck-people id="people"></ck-people>
+      </iron-pages>      
+    </app-header-layout>
+
+  </template>
+
+  <script>
+    class CkApp extends Polymer.Element {
+      static get is() { return 'ck-app';}
+      static get properties() {
+        return {
+          page: String,
+          path: String,
+          query: String,
+          hash: String
+        };
+      }
+      static get observers() {
+        return [
+          '_urlChanged(path,query,hash)',
+        ];
+      }
+      _urlChanged(path,query,hash) {
+        var pathFrags = (path)?path.split('/'):[APP.defaultPage];
+        var page = pathFrags[1] || APP.defaultPage;
+        this.set('page',page);
+        var resolvedPageUrl = this.resolveUrl('ck-' + page + '.html');
+        Polymer.importHref(
+          resolvedPageUrl,
+          null,
+          this._showPage404.bind(this),
+          true
+        );
+      }
+      ready(){
+        super.ready();
+        APP.readyStep('shell',true);
+      }
+      _showPage404(){
+        this.set('path',APP.defaultPath);
+        this.set('query','');
+        this.set('hash','');
+      }
+    }
+    window.customElements.define(CkApp.is, CkApp);
+  </script>
+</dom-module>

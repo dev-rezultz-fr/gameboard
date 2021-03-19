@@ -1,0 +1,34 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="ck-styles.html">
+
+<dom-module id="ck-index">
+  <template>
+    <style include="ck-styles">
+      paper-button.card{width:350px;margin-left:auto;margin-right:auto;height:150px;background:white;}
+      iron-icon{margin-right:24px;}
+      #new{color:var(--cricket-success-color);}
+      #game{color:var(--cricket-warning-color);}
+      #game[disabled]{background:#eee;color:white}
+    </style>
+    <div class="col">
+      <div class="flex"></div>
+      <div class="row">
+        <a href="[[rootPath]]new"><div class="card"><iron-icon icon="ck:new"></iron-icon>Nouvelle partie</div></a>
+        <a href="[[rootPath]]game"><div class="card"><iron-icon icon="ck:ongoing"></iron-icon>Reprendre</div></a>
+      </div>
+      <div class="flex"></div>
+    </div>
+  </template>
+  <script>
+    class CkIndex extends Polymer.Element {
+      static get is() { return 'ck-index';}
+      static get properties() {
+        return {
+          rootPath: String
+        };
+      }
+      refresh(){}
+    }
+    window.customElements.define(CkIndex.is, CkIndex);
+  </script>
+</dom-module>
